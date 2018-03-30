@@ -1,0 +1,420 @@
+<html>
+
+<!--<style>
+canvas {
+    border: 1px solid #000;
+}
+</style>-->
+ 
+<style>
+  #imgCanvas { border: 2px solid ; }
+  div { background: linear-gradient(135deg, rgba(0,0,255,0.3), rgba(255,255,255,1)); }
+  button { display: block;
+	background-color:white; 
+    border: none;
+    outline:none;}
+</style>
+
+<div style="position:absolute; top:65px; left:72px;padding:0;"  id="stage">
+  <canvas  tabindex='1' id="imgCanvas" width="1129px" height="800" ></canvas>
+</div>
+
+
+<body>
+
+<button style="position:absolute; top:0;left:0px" onclick="modeSelect()"><img id="bselect" src="select.png" width="60px" height="60px"></button>
+<button style="position:absolute; top:520px;left:0px" onclick="labelChoice()"><img id="blabel" src="label.png" width="60px" height="60px"></button>
+<button style="position:absolute; top:65px;left:0px" onclick="modeMultiLine()"><img id="bmultiline" src="multiline.png" width="60px" height="60px"></button>
+<button style="position:absolute; top:130px;left:0px" onclick="modeArc()"><img id="barc" src="arc.png" width="60px" height="60px"></button>
+<button style="position:absolute; top:130px;left:1205px" onclick="modeLength()"><img id="blength" src="length.png" width="60px" height="60px"></button>
+<button style="position:absolute; top:390px;left:1205px" onclick="modeAngleChoice()"><img id="bangle" src="angle.png" width="60px" height="60px"></button>
+<button style="position:absolute; top:65;left:1205px" onclick="modeParallel()"><img id="bparallel" src="parallel.png" width="60px" height="60px"></button>
+<button style="position:absolute; top:195px;left:1205px" onclick="modeEquiLength()"><img id="bequilength" src="equilength.png" width="60px" height="60px"></button>
+<button style="position:absolute; top:455px;left:1205px" onclick="modeParaLength()"><img id="bparalength" src="paralength.png" width="60px" height="60px"></button>
+<button style="position:absolute; top:520px;left:1205px" onclick="modeParaAngle()"><img id="bparaangle" src="paraangle.png" width="60px" height="60px"></button>
+<button style="position:absolute; top:650px;left:1205px" onclick="modeParaAngle()"><img id="bparaangle" src="tangent.png" width="60px" height="60px"></button>
+<button style="position:absolute; top:260px;left:1205px" onclick="modeDistChoice()"><img id="bdistp2p" src="p2p.png" width="60px" height="60px"></button>
+<button style="position:absolute; top:390px;left:0px" onclick="modeAddPoint()"><img id="baddpoint" src="addpoint.png" width="60px" height="60px"></button>
+<button style="position:absolute; top:325px;left:1205px" onclick="modeCoincidence()"><img id="bcoincidence" src="coincidence.png" width="60px" height="60px"></button>
+<button style="position:absolute; top:455px;left:0px" onclick="modeTranslate()"><img id="btranslate" src="translate.png" width="60px" height="60px"></button>
+<button style="position:absolute; top:585px;left:0px" onclick="modeMeasure()"><img id="bmeasure" src="measure.png" width="60px" height="60px"></button>
+<button style="position:absolute; top:585px;left:1205px" onclick="modeGradient()"><img id="bgradient" src="gradient.png" width="60px" height="60px"></button>
+<button style="position:absolute; top:260px;left:0px" onclick="modeCreateSection()"><img id="bcreatesection" src="createsection.png" width="60px" height="60px"></button>
+<button style="position:absolute; top:325px;left:0px" onclick="modeCreateHole()"><img id="bcreatehole" src="createhole.png" width="60px" height="60px"></button>
+<button style="position:absolute; top:195px;left:0px" onclick="modeCircle()"><img id="bcircle" src="circle.png" width="60px" height="60px"></button>
+<button style="position:absolute; top:650px;left:0px" onclick="modeFillet()"><img id="bfillet" src="fillet.png" width="60px" height="60px"></button>
+
+
+<script src="closeTo.js"></script>
+<script src="geometry.js"></script>
+<script src="modeCoor.js"></script>
+<script src="modeDraw.js"></script>
+<script src="modeLength.js"></script>
+<script src="modeEquiLength.js"></script>
+<script src="BFGS.js"></script>
+<script src="Dimensions.js"></script>
+<script src="paraDim.js"></script>
+<script src="modeAngle.js"></script>
+<script src="modeParallel.js"></script>
+<script src="modeArc.js"></script>
+<script src="algebra.js"></script>
+<script src="eventManager.js"></script>
+<script src="selection.js"></script>
+<script src="labels.js"></script>
+<script src="constraint.js"></script>
+<script src="move.js"></script>
+<script src="buttons.js"></script>
+<script src="distance.js"></script>
+<script src="addpoint.js"></script>
+<script src="measure.js"></script>
+<script src="section.js"></script>
+<script src="circle.js"></script>
+<script src="fillet.js"></script>
+
+<script>
+
+
+var canvas = document.getElementById("imgCanvas");
+var context = canvas.getContext("2d");
+var pointList = [];
+var edgeList = [];
+var arcList = [];
+var sectionList = [];
+var constraintList = [];
+var dimensionList = [];
+var parameterList = [];
+var arcparam = [];
+var extension= false;
+var extparam = [];
+var radius = 10;
+var line_width = 3;
+var shapes = [];
+var mode = "select";
+var horivert = {dir:[],label:[]};
+var constrline = {dir:"off", point1:-1,point2:-1};
+var equiL = [];
+var showDim = "off";
+var pointangle = [];
+var edgeangle = [];
+var anglebutton = "off";
+var labelbutton = "off";
+var distbutton = "off";
+var labpoints = false;
+var labedges = false;
+var labarcs = false;
+var comptEquiL = 0;
+var edgeParallel = [];
+var selection = [];
+var selected_ctr = -1;
+var selected_param = -1;
+var labelpoint = 0;
+var labeledge = 0;
+var labelarc = 0;
+var labelsection = 0;
+var labelconstraint = 0;
+var labelparameter = 0;
+var lastpoint = -1;
+var flag = 0;
+var imghori = new Image(); 
+imghori.src = 'hori_symbol.png';
+var imgvert = new Image(); 
+imgvert.src = 'verti_symbol.png';
+var logos = [];
+var posbuff = {x:0,y:0};
+var map = [];
+var point2pointdist = [];
+var pointmerge = [];
+var pointslab = [];
+var section_list = [];
+
+canvas.addEventListener("click",function(event){
+	clearCanvas();
+	if(flag == 0 || flag == 1){
+		if(mode == "modeMultiLine0" || mode == "modeMultiLine1"){
+			draw(event);
+		} else if (mode == "modeCoor"){
+			seizeCoor(event);
+		} else if (mode == "modeLength"){
+			seizeLength(event);
+		} else if (mode == "modeEquiLength") {
+			equiLength(event);
+		} else if (mode == "select"){
+			var elem = identifyElement(event);
+			if ( elem == undefined){
+				unSelection();
+			} else {
+				if(event.ctrlKey){
+					selection[selection.length] = elem;
+				} else {
+					selection[0] = elem;
+				}
+				lightSelection();
+			}
+			if (onTextConstraint(event)[0]){                        // clic sur une contrainte
+				selectConstraint(onTextConstraint(event)[1]);
+			} else {
+				unSelectCtr();
+				selected_ctr = -1;
+			}
+			if (onTextParameter(event)[0]){                        // clic sur un paramètre
+				selectParameter(onTextParameter(event)[1]);
+			} else {
+				unSelectParam();
+				selected_param = -1;
+			}
+		} else if (mode == "modeParaLength"){
+			paraLength(event);
+		} else if (mode == "modeParaAngle1"){
+			paraAngle1(event);
+		} else if (mode == "modeParaAngle2"){
+			paraAngle2(event);
+		} else if (mode == "modeAnglePoints"){
+			if (pointangle.length == 0){
+				seizePointAngle1(event);
+			} else if (pointangle.length == 1){
+				seizePointAngle2(event);
+			} else if (pointangle.length == 2){
+				seizePointAngle3(event);
+			}	
+		} else if (mode == "modeAngleEdges"){
+			if (edgeangle.length == 0){
+				seizeEdgeAngle1(event);
+			} else if (edgeangle.length == 1){
+				seizeEdgeAngle2(event);
+			}
+		} else if (mode == "modeParallel"){
+			if (edgeParallel.length == 0){
+				seizeEdgeParallel1(event);
+			} else if (edgeParallel.length == 1){
+				seizeEdgeParallel2(event);
+			}
+		} else if (mode == "modeArc"){
+			if(arcparam.length == 0){
+				drawArc1(event);
+			} else if (arcparam.length==1){
+				drawArc2(event);
+			} else if (arcparam.length==2){
+				drawArc3(event);
+			}
+		} else if (mode == "modeCircle"){
+			circle(event);
+		} else if (mode == "modeP2p" || mode == "modeP2pH" || mode == "modeP2pV"){
+			seizePointDist(event);
+		} else if (mode == "modeAddPoint"){
+			addPoint(event);
+		} else if (mode == "modeCoincidence"){
+			coincidencePoints(event);
+		} else if (mode == "modeMeasure"){
+			measure(event);
+		} else if (mode == "modeGradient"){
+			gradient(event);
+		} else if (mode == "modeCreateSection" || mode == "modeCreateHole"){
+			createSection(event);
+		} else if (mode == "modeFillet"){
+			createFillet(event);
+		} ;
+	};
+	if(flag != 0){
+		flag = 0;
+	}
+	drawCanvas();
+});
+
+window.addEventListener("keydown",function(event){
+	if(mode == "select"){
+		var keyCode = event.code;
+		//console.log(keyCode);
+		if(keyCode === "Backspace"){
+			clearCanvas();
+			if(selection.length >0){
+				deleteSelection();
+			}
+			if(selected_ctr != -1){
+				deleteConstraint(selected_ctr);
+				unSelectParam();
+			}
+			if(selected_param != -1){
+				deleteParameter(selected_param);
+				unSelectParam();
+			}
+			drawCanvas();
+		}
+	};
+	map[event.keyCode] = (event.type == 'keydown');
+	//console.log(event.keyCode);
+	//console.log(event.type);
+});
+
+window.addEventListener("keyup",function(event){
+	map[event.keyCode] = (event.type == 'keydown');
+})
+
+canvas.addEventListener("mousedown",function(event){
+	event.preventDefault();
+	if( mode == "select" && selection.length == 0){
+		movedown(event);
+	}
+	if( mode == "modeTranslate"){
+		translateDown(event);
+	}
+});
+
+canvas.addEventListener("mouseup",function(event){
+	event.preventDefault();
+	if( flag === 2 && mode == "select"){
+		moveUp(event);
+		flag = 3;;
+	} else if( flag === 2 && mode == "modeTranslate"){
+		translateUp(event);
+		flag = 3;;
+	}
+});
+
+canvas.addEventListener("mousemove",function(event){
+	if ( mode == "select" && flag ===0){
+		clearCanvas();
+		closeLine(event);
+		closePoint(event);
+		closeArc(event);
+		closeConstraint(event);
+		closeParameter(event);
+		drawCanvas();
+	} else if (mode == "modeMultiLine0"){
+		clearCanvas();
+		closePoint(event);
+		drawCanvas();
+	} else if ( mode == "modeMultiLine1"){
+		clearCanvas();
+		drawCanvas();
+		if (pointList.length > 0){
+			horiVertLine(event);
+			constructLine(event);
+		}
+		activeLine(event);
+		closePoint(event);
+	} else if ( mode == "modeLength"){
+		clearCanvas();
+		closeLine(event);
+		closePoint(event);
+		drawCanvas();
+	} else if ( mode == "modeEquiLength"){
+		clearCanvas();
+		closeLine(event);
+		closePoint(event);
+		drawCanvas();
+	} else if ( mode == "modeCoor"){
+		clearCanvas();
+		closePoint(event);
+		drawCanvas();
+	} else if ( mode == "modeParaLength"){
+		clearCanvas();
+		closeLine(event);
+		drawCanvas();
+	} else if ( mode == "modeParaAngle1" || mode == "modeParaAngle2"){
+		clearCanvas();
+		closeLine(event);
+		drawCanvas();
+	} else if ( mode == "modeAnglePoints"){
+		clearCanvas();
+		closePoint(event);
+		drawCanvas();
+	} else if ( mode == "modeAngleEdges"){
+		clearCanvas();
+		closeLine(event);
+		drawCanvas();
+	} else if ( mode == "modeParallel"){
+	clearCanvas();
+		closeLine(event);
+		drawCanvas();
+	} else if ( mode == "modeArc"){
+		if(arcparam.length == 0){
+			clearCanvas();
+			closePoint(event);
+			drawCanvas();
+		} else if(arcparam.length==1){
+			clearCanvas();
+			closePoint(event);
+			activeLine(event);
+			drawCanvas();
+		} else if (arcparam.length==2){
+			clearCanvas();
+			closePoint(event);
+			activeArc(event);
+			drawCanvas();
+		}
+	} else if(mode == "modeCircle"){
+		if(arcparam.length == 0){
+			clearCanvas();
+			closePoint(event);
+			drawCanvas();
+		} else if (arcparam.length == 1){
+			clearCanvas();
+			closePoint(event);
+			activeCircle(event);
+			drawCanvas();
+		}
+	} else if(mode == "modeFillet"){
+		if(arcparam.length == 2){
+			clearCanvas();
+			activeFillet(event);
+			drawCanvas();
+		} else if(arcparam.length == 1 || arcparam.length == 0){
+			clearCanvas();
+			closeLine(event);
+			drawCanvas();
+		}
+	} else if (mode == "modeTranslate" && flag == 0){
+		clearCanvas();
+		closeLine(event);
+		closePoint(event);
+		closeArc(event);
+		drawCanvas();
+	} else if (mode == "modeTranslate" && (flag === 1 || flag===2)){
+		translate(event);
+		flag = 2;
+	}else if (mode == "select" && (flag === 1 || flag===2)){
+		move(event);
+		flag = 2;
+	} else if (mode == "modeP2p" || mode == "modeP2pH" || mode == "modeP2pV"){
+		clearCanvas();
+		closePoint(event);
+		drawCanvas();
+	} else if (mode == "modeAddPoint"){
+		clearCanvas();
+		closeLine(event);
+		drawCanvas();
+	} else if (mode == "modeCoincidence"){
+		clearCanvas();
+		closePoint(event);
+		drawCanvas()
+	} else if (mode == "modeMeasure"){
+		clearCanvas();
+		closePoint(event);
+		closeLine(event);
+		drawCanvas()
+	} else if (mode == "modeGradient"){
+		clearCanvas();
+		closeLine(event);
+		drawCanvas()
+	} else if (mode == "modeCreateSection" || mode == "modeCreateHole"){
+		clearCanvas();
+		closeSectionText(event);
+		closeSection(event);
+		drawCanvas();
+		showSectionList();
+	}
+});
+
+function modeSelect(){
+	mode = "select";
+	showButtons();
+}
+
+
+window.draw = draw;
+
+</script>
+
+</body>
+
+</html>
